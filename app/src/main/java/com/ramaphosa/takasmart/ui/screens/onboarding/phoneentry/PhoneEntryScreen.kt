@@ -112,33 +112,54 @@ fun PhoneEntryScreen(navController: NavController) {
             )
 
             Spacer(modifier = Modifier.weight(1f))
-
             Button(
                 onClick = {
-                    val cleaned = phone.filter { it.isDigit() }
-                    if (cleaned.length < 9) {
+                    val cleaned = phone.trim()
+                    val stripped = cleaned.filter { it.isDigit() || it == '+' }
+
+                    android.util.Log.d("OTP_DEBUG", "=== SEND OTP TAPPED ===")
+                    android.util.Log.d("OTP_DEBUG", "Raw input: '$cleaned'")
+                    android.util.Log.d("OTP_DEBUG", "Stripped: '$stripped'")
+
+                    val normalized = when {
+                        stripped.startsWith("+254") -> stripped
+                        stripped.startsWith("254")  -> "+$stripped"
+                        stripped.startsWith("0")    -> "+254${stripped.removePrefix("0")}"
+                        else                        -> "+254$stripped"
+                    }
+
+                    android.util.Log.d("OTP_DEBUG", "Normalized: '$normalized'")
+
+                    val digitsAfterCode = normalized.removePrefix("+254")
+                    android.util.Log.d("OTP_DEBUG", "Digits after code: '$digitsAfterCode'")
+                    android.util.Log.d("OTP_DEBUG", "Digit count: ${digitsAfterCode.length}")
+
+                    if (digitsAfterCode.length != 9 || !digitsAfterCode.all { it.isDigit() }) {
+                        android.util.Log.d("OTP_DEBUG", "VALIDATION FAILED")
                         isError = true
                     } else {
+                        android.util.Log.d("OTP_DEBUG", "VALIDATION PASSED — calling Firebase")
                         isLoading = true
                         isError   = false
 
-                        val normalized = "+254${cleaned.takeLast(9)}"
+                        val auth = FirebaseAuth.getInstance()
+                        android.util.Log.d("OTP_DEBUG", "Auth instance: $auth")
+                        android.util.Log.d("OTP_DEBUG", "Current user before OTP: ${auth.currentUser}")
 
-                        val options = PhoneAuthOptions.newBuilder(
-                            FirebaseAuth.getInstance()
-                        )
+                        val options = PhoneAuthOptions.newBuilder(auth)
                             .setPhoneNumber(normalized)
                             .setTimeout(60L, TimeUnit.SECONDS)
                             .setActivity(activity)
                             .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
-                                override fun onVerificationCompleted(
-                                    credential: PhoneAuthCredential
-                                ) {
+                                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                                    android.util.Log.d("OTP_DEBUG", "onVerificationCompleted fired")
                                     isLoading = false
                                 }
 
                                 override fun onVerificationFailed(e: FirebaseException) {
+                                    android.util.Log.e("OTP_DEBUG", "onVerificationFailed: ${e.message}")
+                                    android.util.Log.e("OTP_DEBUG", "Exception class: ${e.javaClass.simpleName}")
                                     isLoading = false
                                     isError   = true
                                 }
@@ -147,20 +168,22 @@ fun PhoneEntryScreen(navController: NavController) {
                                     verificationId: String,
                                     token: PhoneAuthProvider.ForceResendingToken
                                 ) {
-                                    // verificationId now exists — safe to navigate
+                                    android.util.Log.d("OTP_DEBUG", "onCodeSent fired — verificationId: $verificationId")
                                     isLoading = false
                                     navController.navigate("otp_verify/$verificationId")
                                 }
                             })
                             .build()
 
+                        android.util.Log.d("OTP_DEBUG", "Calling verifyPhoneNumber with: $normalized")
                         PhoneAuthProvider.verifyPhoneNumber(options)
+                        android.util.Log.d("OTP_DEBUG", "verifyPhoneNumber called — waiting for callback")
                     }
                 },
                 enabled  = phone.isNotEmpty() && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(20.dp),
+                    .height(50.dp),
                 shape  = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor         = Teal,
@@ -171,8 +194,8 @@ fun PhoneEntryScreen(navController: NavController) {
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color    = White,
+                        modifier    = Modifier.size(20.dp),
+                        color       = White,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -189,7 +212,7 @@ fun PhoneEntryScreen(navController: NavController) {
                 onClick  = { navController.popBackStack() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(20.dp),
+                    .height(50.dp),
                 shape  = RoundedCornerShape(10.dp),
                 border = ButtonDefaults.outlinedButtonBorder(
                     enabled = true

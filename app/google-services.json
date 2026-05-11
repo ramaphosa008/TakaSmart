@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "593400463561",
-    "project_id": "takasmart-a922f",
-    "storage_bucket": "takasmart-a922f.firebasestorage.app"
+    "project_number": "979584843357",
+    "project_id": "takasmart-1b863",
+    "storage_bucket": "takasmart-1b863.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:593400463561:android:d82aae55d50e5846540d18",
+        "mobilesdk_app_id": "1:979584843357:android:c1199632f5ee5a1ec557b4",
         "android_client_info": {
           "package_name": "com.ramaphosa.takasmart"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAF_c2QnvJ3LxsaRJ23xdHQAR33-M2mQhs"
+          "current_key": "AIzaSyAxtAabBHND8T8R9FgzQfXJgymVKJQx8M4"
         }
       ],
       "services": {

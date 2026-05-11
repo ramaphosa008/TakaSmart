@@ -61,7 +61,7 @@ fun HouseholdHomeScreen(navController: NavController) {
                     ) {
                         Text(
                             text     = "$points pts",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             color    = GreenDark,
                             style    = MaterialTheme.typography.labelSmall
                         )

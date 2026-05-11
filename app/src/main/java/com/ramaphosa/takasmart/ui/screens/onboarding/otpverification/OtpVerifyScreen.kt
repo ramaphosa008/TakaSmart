@@ -120,11 +120,11 @@ fun OtpVerifyScreen(
                             }
                         },
                         modifier      = Modifier
-                            .width(64.dp)
+                            .width(50.dp)
                             .focusRequester(focusRequesters[index]),
                         textStyle     = MaterialTheme.typography.titleLarge.copy(
                             textAlign  = TextAlign.Center,
-                            fontSize   = 24.sp,
+                            fontSize   = 16.sp,
                             color      = if (isFilled) Teal else GrayDark
                         ),
                         singleLine    = true,
