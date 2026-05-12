@@ -66,7 +66,7 @@ fun HouseholdHomeScreen(navController: NavController) {
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 Text(
-                                    text = "C",
+                                    text = "H",
                                     color = Teal,
                                     style = MaterialTheme.typography.titleMedium
                                 )

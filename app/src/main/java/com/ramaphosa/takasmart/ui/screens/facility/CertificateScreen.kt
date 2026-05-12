@@ -34,6 +34,7 @@ fun CertificateScreen(navController: NavController, jobId: String) {
     var scheduledAt   by remember { mutableStateOf("") }
     var isSending     by remember { mutableStateOf(false) }
     var sentSuccess   by remember { mutableStateOf(false) }
+    var errorMessage  by remember { mutableStateOf("") }
 
     val collectorPayout = verifiedKg * 20
     val householdPoints = (verifiedKg * 10).toInt()
@@ -207,7 +208,7 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                                     color = GrayMid
                                 )
                                 Text(
-                                    text = "KES %.0f → Collector · Ref: TKS${
+                                    text = "KES %.0f to Collector · Ref: TKS${
                                         jobId.take(6).uppercase()
                                     }".format(collectorPayout),
                                     style = MaterialTheme.typography.bodySmall,
@@ -294,14 +295,14 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                                                 sentSuccess = true
                                             }
                                     }
-                                    .addOnFailureListener { _ ->
+                                    .addOnFailureListener { e ->
                                         isSending = false
-                                        // Show error — points not credited
+                                        errorMessage = "Failed to credit points: ${e.localizedMessage}"
                                     }
                             }
-                            .addOnFailureListener { _ ->
+                            .addOnFailureListener { e ->
                                 isSending = false
-                                // Show error — certificate not created
+                                errorMessage = "Failed to create certificate: ${e.localizedMessage}"
                             }
                     }
                 ) {
@@ -320,22 +321,29 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                 }
                 Spacer(Modifier.height(8.dp))
             }
-        }
 
-
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = ErrorRed,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
 
             // ── Back to facility home ──────────────────────────
             OutlinedButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                onClick  = {
+                onClick = {
                     navController.navigate(ROUT_FACILITY_HOME) {
                         popUpTo(ROUT_FACILITY_HOME) { inclusive = true }
                     }
                 },
-                border   = BorderStroke(0.5.dp, BorderColor),
-                shape    = RoundedCornerShape(10.dp)
+                border = BorderStroke(0.5.dp, BorderColor),
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
                     "Back to dashboard",
@@ -347,6 +355,7 @@ fun CertificateScreen(navController: NavController, jobId: String) {
             Spacer(Modifier.height(24.dp))
         }
     }
+}
 
 
 
