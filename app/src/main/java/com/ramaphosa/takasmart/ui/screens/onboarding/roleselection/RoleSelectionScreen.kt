@@ -1,6 +1,5 @@
 package com.ramaphosa.takasmart.ui.screens.onboarding.roleselection
 
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -101,7 +100,8 @@ fun RoleSelectScreen(navController: NavController) {
 
             Button(
                 onClick  = {
-                    navController.navigate(ROUT_PHONE_ENTRY)
+                    // Navigate to the phone entry screen with the selected role
+                    navController.navigate("phone_entry/$selectedRole")
                 },
                 modifier = Modifier
                     .fillMaxWidth()

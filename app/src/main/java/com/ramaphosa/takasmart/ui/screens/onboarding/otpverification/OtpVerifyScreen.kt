@@ -1,6 +1,5 @@
 package com.ramaphosa.takasmart.ui.screens.onboarding.otpverification
 
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -11,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,6 +22,8 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.ramaphosa.takasmart.navigation.ROUT_COLLECTOR_HOME
+import com.ramaphosa.takasmart.navigation.ROUT_FACILITY_HOME
 import com.ramaphosa.takasmart.navigation.ROUT_HOUSEHOLD_HOME
 import com.ramaphosa.takasmart.navigation.ROUT_SPLASH
 import com.ramaphosa.takasmart.ui.theme.*
@@ -31,22 +31,19 @@ import com.ramaphosa.takasmart.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtpVerifyScreen(
-    navController: NavController,
-    verificationId: String  // passed from PhoneEntryScreen after Firebase sends the OTP
+    navController  : NavController,
+    verificationId : String,
+    role           : String = "household",  // household | collector | facility
+    entityId       : String = ""            // COL001 or FAC001 — empty for household
 ) {
-    val context = LocalContext.current
-    val auth    = FirebaseAuth.getInstance()
+    val auth = FirebaseAuth.getInstance()
 
-    // One string per digit box
-    val digits = remember { mutableStateListOf("", "", "", "", "", "") }
-
-    // A FocusRequester for each box so the cursor jumps forward automatically
+    val digits          = remember { mutableStateListOf("", "", "", "", "", "") }
     val focusRequesters = remember { List(6) { FocusRequester() } }
 
-    var isLoading       by remember { mutableStateOf(false) }
-    var errorMessage    by remember { mutableStateOf("") }
+    var isLoading    by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
-    // Auto-request focus on the first box when the screen opens
     LaunchedEffect(Unit) {
         focusRequesters[0].requestFocus()
     }
@@ -61,7 +58,7 @@ fun OtpVerifyScreen(
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text  = "Enter the 4-digit code we sent you",
+                            text  = "Enter the 6-digit code we sent you",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -69,7 +66,10 @@ fun OtpVerifyScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -77,7 +77,7 @@ fun OtpVerifyScreen(
     ) { padding ->
 
         Column(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 24.dp),
@@ -86,54 +86,91 @@ fun OtpVerifyScreen(
 
             Spacer(Modifier.height(48.dp))
 
-            // ── 4 digit boxes ──────────────────────────────────
+            // ── Step indicator ─────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                com.ramaphosa.takasmart.ui.screens.onboarding.phoneentry.StepDot(active = false)
+                com.ramaphosa.takasmart.ui.screens.onboarding.phoneentry.StepDot(active = false)
+                com.ramaphosa.takasmart.ui.screens.onboarding.phoneentry.StepDot(active = true)
+            }
+
+            Spacer(Modifier.height(28.dp))
+
+            // ── Role indicator badge ───────────────────────────
+            // Shows the user which role they are signing in as
+            Surface(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                color = when (role) {
+                    "collector" -> AmberSurface
+                    "facility"  -> PurpleSurface
+                    else        -> TealSurface
+                }
+            ) {
+                Text(
+                    text     = when (role) {
+                        "collector" -> "Signing in as Collector" + 
+                            if (entityId != "none" && entityId.isNotEmpty()) " · $entityId" else ""
+                        "facility"  -> "Signing in as Facility" + 
+                            if (entityId != "none" && entityId.isNotEmpty()) " · $entityId" else ""
+                        else        -> "Signing in as Household"
+                    },
+                    modifier = Modifier.padding(
+                        horizontal = 14.dp,
+                        vertical   = 6.dp
+                    ),
+                    color = when (role) {
+                        "collector" -> AmberDark
+                        "facility"  -> PurpleDark
+                        else        -> TealDark
+                    },
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+
+            Spacer(Modifier.height(32.dp))
+
+            // ── 6 digit boxes ──────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 digits.forEachIndexed { index, digit ->
-
                     val isFilled = digit.isNotEmpty()
 
                     OutlinedTextField(
                         value         = digit,
                         onValueChange = { input ->
-                            // Only accept a single digit
                             if (input.length <= 1 && input.all { it.isDigit() }) {
                                 digits[index] = input
-
-                                // Jump to next box if a digit was typed
                                 if (input.isNotEmpty() && index < 5) {
                                     focusRequesters[index + 1].requestFocus()
                                 }
-
-                                // If last box filled, clear error
                                 if (index == 5 && input.isNotEmpty()) {
                                     errorMessage = ""
                                 }
                             }
-
-                            // Handle backspace — go to previous box
                             if (input.isEmpty() && index > 0) {
                                 digits[index] = ""
                                 focusRequesters[index - 1].requestFocus()
                             }
                         },
-                        modifier      = Modifier
-                            .width(50.dp)
+                        modifier        = Modifier
+                            .width(48.dp)
                             .focusRequester(focusRequesters[index]),
-                        textStyle     = MaterialTheme.typography.titleLarge.copy(
-                            textAlign  = TextAlign.Center,
-                            fontSize   = 16.sp,
-                            color      = if (isFilled) Teal else GrayDark
+                        textStyle       = MaterialTheme.typography.titleLarge.copy(
+                            textAlign = TextAlign.Center,
+                            fontSize  = 16.sp,
+                            color     = if (isFilled) Teal else GrayDark
                         ),
-                        singleLine    = true,
+                        singleLine      = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.NumberPassword
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor   = Teal,
-                            unfocusedBorderColor = if (isFilled) TealMid else BorderColor,
+                            focusedBorderColor      = Teal,
+                            unfocusedBorderColor    = if (isFilled) TealMid else BorderColor,
                             focusedContainerColor   = TealSurface,
                             unfocusedContainerColor = if (isFilled) TealSurface else White
                         )
@@ -155,9 +192,9 @@ fun OtpVerifyScreen(
 
             // ── Resend hint ────────────────────────────────────
             Text(
-                text  = "Didn't receive a code? Go back and resend.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text      = "Didn't receive a code? Go back and resend.",
+                style     = MaterialTheme.typography.bodySmall,
+                color     = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -172,31 +209,29 @@ fun OtpVerifyScreen(
                     .height(52.dp),
                 enabled  = allFilled && !isLoading,
                 colors   = ButtonDefaults.buttonColors(
-                    containerColor = Teal,
-                    contentColor   = White
+                    containerColor = when (role) {
+                        "collector" -> Amber
+                        "facility"  -> Purple
+                        else        -> Teal
+                    },
+                    contentColor = White
                 ),
-                onClick  = {
-                    isLoading = true
+                onClick = {
+                    isLoading    = true
                     errorMessage = ""
 
                     val code       = digits.joinToString("")
                     val credential = PhoneAuthProvider.getCredential(verificationId, code)
 
                     signInWithCredential(
-                        auth        = auth,
-                        credential  = credential,
-                        onSuccess   = {
-                            isLoading = false
-                            // Clear the entire back stack so the user
-                            // cannot press back to return to login
-                            navController.navigate(ROUT_HOUSEHOLD_HOME) {
-                                popUpTo(ROUT_SPLASH) { inclusive = true }
-                            }
-                        },
-                        onError     = { message ->
-                            isLoading = false
+                        auth          = auth,
+                        credential    = credential,
+                        role          = role,
+                        entityId      = entityId,
+                        navController = navController,
+                        onLoading     = { isLoading = it },
+                        onError       = { message ->
                             errorMessage = message
-                            // Clear all boxes so user retypes
                             digits.forEachIndexed { i, _ -> digits[i] = "" }
                             focusRequesters[0].requestFocus()
                         }
@@ -205,8 +240,8 @@ fun OtpVerifyScreen(
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color    = White,
+                        modifier    = Modifier.size(20.dp),
+                        color       = White,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -217,53 +252,122 @@ fun OtpVerifyScreen(
     }
 }
 
-// ── Firebase sign-in helper ────────────────────────────────────────────────
+// ── Firebase sign-in + user document creation ──────────────────────────────
 private fun signInWithCredential(
-    auth       : FirebaseAuth,
-    credential : PhoneAuthCredential,
-    onSuccess  : () -> Unit,
-    onError    : (String) -> Unit
+    auth          : FirebaseAuth,
+    credential    : PhoneAuthCredential,
+    role          : String,
+    entityId      : String,
+    navController : NavController,
+    onLoading     : (Boolean) -> Unit,
+    onError       : (String) -> Unit
 ) {
     auth.signInWithCredential(credential)
         .addOnSuccessListener { result ->
             val user = result.user ?: return@addOnSuccessListener
             val db   = FirebaseFirestore.getInstance()
 
-            // Check if user document already exists
             db.collection("users").document(user.uid)
                 .get()
                 .addOnSuccessListener { snap ->
                     if (!snap.exists()) {
-                        // First login — create the document
-                        db.collection("users").document(user.uid).set(
-                            mapOf(
-                                "uid"            to user.uid,
-                                "phone"          to (user.phoneNumber ?: ""),
-                                "role"           to "household",
-                                "points_balance" to 0,
-                                "recycled_kg"    to 0.0,
-                                "pickups_done"   to 0,
-                                "created_at"     to FieldValue.serverTimestamp()
-                            )
-                        ).addOnSuccessListener { onSuccess() }
+                        // First login — build user document
+                        val userData = mutableMapOf<String, Any>(
+                            "uid"            to user.uid,
+                            "phone"          to (user.phoneNumber ?: ""),
+                            "role"           to role,
+                            "points_balance" to 0,
+                            "recycled_kg"    to 0.0,
+                            "pickups_done"   to 0,
+                            "created_at"     to FieldValue.serverTimestamp()
+                        )
+
+                        // Store entity ID for collector and facility
+                        if (entityId.isNotEmpty() && entityId != "none") {
+                            userData["entity_id"] = entityId
+                            
+                            // Link the UID back to the collector/facility record for easier lookups
+                            val collection = if (role == "collector") "collectors" else "facilities"
+                            db.collection(collection).document(entityId)
+                                .update("uid", user.uid)
+                        }
+
+                        db.collection("users").document(user.uid)
+                            .set(userData)
+                            .addOnSuccessListener {
+                                onLoading(false)
+                                navigateByRole(role, navController)
+                            }
+                            .addOnFailureListener { e ->
+                                onLoading(false)
+                                onError(e.message ?: "Failed to create account.")
+                            }
                     } else {
-                        // Returning user — go straight in
-                        onSuccess()
+                        // Returning user — use stored role
+                        onLoading(false)
+                        val storedRole = snap.getString("role") ?: role
+                        navigateByRole(storedRole, navController)
                     }
+                }
+                .addOnFailureListener { e ->
+                    onLoading(false)
+                    onError(e.message ?: "Failed to load account.")
                 }
         }
         .addOnFailureListener { e ->
+            onLoading(false)
             onError(e.message ?: "Wrong code. Please try again.")
         }
 }
 
+// ── Navigate to the correct home screen based on role ─────────────────────
+private fun navigateByRole(role: String, navController: NavController) {
+    val destination = when (role) {
+        "collector" -> ROUT_COLLECTOR_HOME
+        "facility"  -> ROUT_FACILITY_HOME
+        else        -> ROUT_HOUSEHOLD_HOME
+    }
+    navController.navigate(destination) {
+        popUpTo(ROUT_SPLASH) { inclusive = true }
+    }
+}
+
+// ── Preview ────────────────────────────────────────────────────────────────
 @Preview(showBackground = true)
 @Composable
 fun OtpVerifyScreenPreview() {
     TakaSmartTheme {
         OtpVerifyScreen(
-            navController    = rememberNavController(),
-            verificationId   = "fake_verification_id_for_preview"
+            navController  = rememberNavController(),
+            verificationId = "fake_id_for_preview",
+            role           = "household",
+            entityId       = ""
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Collector OTP")
+@Composable
+fun OtpVerifyCollectorPreview() {
+    TakaSmartTheme {
+        OtpVerifyScreen(
+            navController  = rememberNavController(),
+            verificationId = "fake_id_for_preview",
+            role           = "collector",
+            entityId       = "COL001"
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Facility OTP")
+@Composable
+fun OtpVerifyFacilityPreview() {
+    TakaSmartTheme {
+        OtpVerifyScreen(
+            navController  = rememberNavController(),
+            verificationId = "fake_id_for_preview",
+            role           = "facility",
+            entityId       = "FAC001"
         )
     }
 }

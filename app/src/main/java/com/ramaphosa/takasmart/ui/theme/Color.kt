@@ -8,6 +8,8 @@ val Teal         = Color(0xFF0F6E56)
 val TealMid      = Color(0xFF1D9E75)
 val TealSurface  = Color(0xFFE1F5EE)
 
+val TealLight    = Color(0xFF5DCAA5)
+
 // Eco green — success states
 val GreenDark    = Color(0xFF27500A)
 val Green        = Color(0xFF3B6D11)

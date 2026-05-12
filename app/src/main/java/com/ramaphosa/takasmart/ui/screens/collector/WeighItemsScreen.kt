@@ -30,13 +30,32 @@ fun WeighItemsScreen(navController: NavController, jobId: String) {
     var isSaving     by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Load item IDs from this pickup
+    // Facilities selection
+    var facilities by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+
+    var selectedFacilityId by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+
+    // Load item IDs and Facilities
     LaunchedEffect(jobId) {
         db.collection("pickups").document(jobId)
             .get()
             .addOnSuccessListener { snap ->
                 itemIds = (snap.get("item_ids") as? List<*>)
                     ?.filterIsInstance<String>() ?: emptyList()
+            }
+            
+        // Fetch from the 'facilities' collection to get the Entity IDs (e.g. FAC002)
+        db.collection("facilities")
+            .whereEqualTo("active", true)
+            .get()
+            .addOnSuccessListener { snaps ->
+                facilities = snaps.documents.map { 
+                    it.id to (it.getString("name") ?: "Facility ${it.id}")
+                }
+                if (facilities.isNotEmpty()) {
+                    selectedFacilityId = facilities.first().first
+                }
             }
     }
 
@@ -167,6 +186,50 @@ fun WeighItemsScreen(navController: NavController, jobId: String) {
                 }
             }
 
+            Spacer(Modifier.height(18.dp))
+
+            // ── Facility Selection ─────────────────────────────
+            Text(
+                text  = "SELECT DESTINATION FACILITY",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
+
+            
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = facilities.find { it.first == selectedFacilityId }?.second ?: "Select Facility",
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Teal,
+                        unfocusedBorderColor = BorderColor
+                    )
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    facilities.forEach { (id, name) ->
+                        DropdownMenuItem(
+                            text = { Text(name) },
+                            onClick = {
+                                selectedFacilityId = id
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(12.dp))
 
             if (errorMessage.isNotEmpty()) {
@@ -180,7 +243,8 @@ fun WeighItemsScreen(navController: NavController, jobId: String) {
 
             // ── Confirm button ─────────────────────────────────
             val allEntered = itemIds.isNotEmpty() &&
-                    itemIds.all { (weights[it]?.toDoubleOrNull() ?: 0.0) > 0 }
+                    itemIds.all { (weights[it]?.toDoubleOrNull() ?: 0.0) > 0 } &&
+                    selectedFacilityId.isNotEmpty()
 
             Button(
                 modifier = Modifier
@@ -199,6 +263,7 @@ fun WeighItemsScreen(navController: NavController, jobId: String) {
                         .update(
                             mapOf(
                                 "collector_logged_kg" to totalKg,
+                                "facility_id"         to selectedFacilityId,
                                 "status"              to "at_facility"
                             )
                         )

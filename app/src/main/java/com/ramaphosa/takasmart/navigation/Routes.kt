@@ -2,10 +2,18 @@ package com.ramaphosa.takasmart.navigation
 
 // Onboarding
 const val ROUT_SPLASH       = "splash"
-const val ROUT_ROLE_SELECT  = "role_select"
-const val ROUT_PHONE_ENTRY  = "phone_entry"
-const val ROUT_OTP_VERIFY = "otp_verify/{verificationId}"
 
+
+
+const val ROUT_ROLE_SELECT  = "role_select"
+// Change phone entry route to accept a role parameter
+const val ROUT_PHONE_ENTRY = "phone_entry/{role}"
+// Helper to build the route cleanly
+fun phoneEntryRoute(role: String) = "phone_entry/$role"
+
+
+
+const val ROUT_OTP_VERIFY = "otp_verify/{verificationId}/{role}/{entityId}"
 // Household
 const val ROUT_HOUSEHOLD_HOME   = "household_home"
 const val ROUT_LOG_ITEM         = "log_item"

@@ -48,16 +48,29 @@ fun AppNavHost(
             RoleSelectScreen(navController)
         }
 
-        composable(ROUT_PHONE_ENTRY) {
-            PhoneEntryScreen(navController)
+        composable(
+            route     = ROUT_PHONE_ENTRY,
+            arguments = listOf(navArgument("role") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val role = backStackEntry.arguments?.getString("role") ?: "household"
+            PhoneEntryScreen(navController, role)
         }
 
+        // Change the OTP route to carry role and entityId
         composable(
             route     = ROUT_OTP_VERIFY,
-            arguments = listOf(navArgument("verificationId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("verificationId") { type = NavType.StringType },
+                navArgument("role")           { type = NavType.StringType
+                    defaultValue = "household" },
+                navArgument("entityId")       { type = NavType.StringType
+                    defaultValue = "" }
+            )
         ) { backStackEntry ->
             val verificationId = backStackEntry.arguments?.getString("verificationId")!!
-            OtpVerifyScreen(navController, verificationId)
+            val role           = backStackEntry.arguments?.getString("role") ?: "household"
+            val entityId       = backStackEntry.arguments?.getString("entityId") ?: ""
+            OtpVerifyScreen(navController, verificationId, role, entityId)
         }
 
         // ── Household ────────────────────────────────────────────

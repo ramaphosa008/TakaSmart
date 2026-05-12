@@ -27,12 +27,21 @@ class FacilityViewModel : ViewModel() {
     val completedToday: StateFlow<Int> = _completedToday
 
     init {
-        loadIncomingLoads()
+        fetchFacilityIdAndLoad()
     }
 
-    private fun loadIncomingLoads() {
+    private fun fetchFacilityIdAndLoad() {
+        // First get the entity_id (e.g. FAC002) from the user document
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { userDoc ->
+                val entityId = userDoc.getString("entity_id") ?: uid // Fallback to uid if not found
+                loadIncomingLoads(entityId)
+            }
+    }
+
+    private fun loadIncomingLoads(facilityId: String) {
         db.collection("pickups")
-            .whereEqualTo("facility_id", uid)
+            .whereEqualTo("facility_id", facilityId)
             .whereIn("status", listOf("at_facility", "completed"))
             .addSnapshotListener { snaps, _ ->
                 val docs = snaps?.documents ?: emptyList()
