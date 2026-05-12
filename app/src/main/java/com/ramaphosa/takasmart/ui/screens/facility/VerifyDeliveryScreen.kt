@@ -1,5 +1,6 @@
 package com.ramaphosa.takasmart.ui.screens.facility
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ fun VerifyDeliveryScreen(navController: NavController, jobId: String) {
     var facilityKgInput   by remember { mutableStateOf("") }
     var isSaving          by remember { mutableStateOf(false) }
     var errorMessage      by remember { mutableStateOf("") }
+    var disputeRaised by remember { mutableStateOf(false) }
 
     // Load the collector's logged weight
     LaunchedEffect(jobId) {
@@ -240,6 +243,7 @@ fun VerifyDeliveryScreen(navController: NavController, jobId: String) {
                     isSaving     = true
                     errorMessage = ""
 
+                    // In the Approve button onClick, replace the dispute path:
                     val newStatus = if (isWithinTolerance) "completed" else "disputed"
 
                     db.collection("pickups").document(jobId)
@@ -247,7 +251,11 @@ fun VerifyDeliveryScreen(navController: NavController, jobId: String) {
                             mapOf(
                                 "facility_verified_kg" to facilityKg,
                                 "status"               to newStatus,
-                                "verified_kg"          to facilityKg
+                                "verified_kg"          to facilityKg,
+                                "dispute_reason"       to if (!isWithinTolerance)
+                                    "Weight mismatch: collector %.2f kg, facility %.2f kg (%.1f%% difference)"
+                                        .format(collectorLoggedKg, facilityKg, difference * 100)
+                                else ""
                             )
                         )
                         .addOnSuccessListener {
@@ -257,8 +265,8 @@ fun VerifyDeliveryScreen(navController: NavController, jobId: String) {
                                     ROUT_CERTIFICATE.replace("{jobId}", jobId)
                                 )
                             } else {
-                                // Dispute raised — go back to facility home
-                                navController.popBackStack()
+                                // Show dispute raised confirmation
+                                disputeRaised = true  // add this state variable
                             }
                         }
                         .addOnFailureListener { e ->
@@ -285,6 +293,52 @@ fun VerifyDeliveryScreen(navController: NavController, jobId: String) {
             }
 
             Spacer(Modifier.height(24.dp))
+
+            // ── Dispute raised confirmation ────────────────────────
+            if (disputeRaised) {
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    shape    = RoundedCornerShape(12.dp),
+                    color    = AmberSurface,
+                    modifier = Modifier.fillMaxWidth(),
+                    border   = BorderStroke(0.5.dp, Amber)
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            text       = "Dispute raised",
+                            style      = MaterialTheme.typography.titleSmall,
+                            color      = AmberDark,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text  = "Collector logged %.2f kg. Your scale reads %.2f kg. The %.1f%% difference exceeds the 15%% threshold. Payout is held pending admin review — usually resolved within 24 hours."
+                                .format(collectorLoggedKg, facilityKg, difference * 100),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AmberDark
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text  = "Dispute ID: ${jobId.take(8).uppercase()}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Amber
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    onClick  = { navController.popBackStack() },
+                    border   = BorderStroke(0.5.dp, BorderColor),
+                    shape    = RoundedCornerShape(10.dp)
+                ) {
+                    Text(
+                        "Back to dashboard",
+                        color = GrayMid,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
         }
     }
 }

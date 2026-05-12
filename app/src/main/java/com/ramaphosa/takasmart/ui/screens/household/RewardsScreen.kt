@@ -16,9 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.firebase.firestore.FieldValue
 import com.ramaphosa.takasmart.data.HouseholdViewModel
 import com.ramaphosa.takasmart.ui.screens.shared.StatCard
 import com.ramaphosa.takasmart.ui.theme.*
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 
 data class RewardOption(
     val label    : String,
@@ -276,17 +279,58 @@ fun RewardsScreen(navController: NavController) {
                             )
                         } else {
                             Button(
-                                onClick  = {
+                                onClick = {
                                     if (!canAfford) {
                                         errorMessage   = "You need ${option.points} pts. You have $points."
                                         successMessage = ""
                                         return@Button
                                     }
+
+                                    val db  = FirebaseFirestore.getInstance()
+                                    val uid = com.google.firebase.auth.FirebaseAuth
+                                        .getInstance().currentUser?.uid ?: ""
+
                                     redeemingType  = option.type
                                     errorMessage   = ""
                                     successMessage = ""
-                                    redeemingType  = ""
-                                    successMessage = "Redemption submitted! Airtime arrives in seconds."
+
+                                    // ── Step 1: Deduct points from user ───────────────────
+                                    db.collection("users").document(uid)
+                                        .update("points_balance",
+                                            FieldValue.increment(-option.points.toLong())
+                                        )
+                                        .addOnSuccessListener {
+
+                                            // ── Step 2: Write redemption record ───────────
+                                            db.collection("redemptions").add(
+                                                mapOf(
+                                                    "user_id"      to uid,
+                                                    "reward_type"  to option.type,
+                                                    "points_spent" to option.points,
+                                                    "amount_kes"   to option.points, // 1 point = KES 1
+                                                    "status"       to "pending",     // changes to "completed" after airtime sent
+                                                    "created_at"   to FieldValue.serverTimestamp()
+                                                )
+                                            )
+                                                .addOnSuccessListener {
+                                                    redeemingType  = ""
+                                                    successMessage = "Redemption submitted! ${option.label} airtime arrives shortly."
+                                                    // TODO: trigger Africa's Talking API call from backend
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    // Redemption record failed — refund points
+                                                    db.collection("users").document(uid)
+                                                        .update("points_balance",
+                                                            FieldValue.increment(option.points.toLong())
+                                                        )
+                                                    redeemingType = ""
+                                                    errorMessage  = "Redemption failed. Your points were not deducted."
+                                                }
+                                        }
+                                        .addOnFailureListener { e ->
+                                            redeemingType = ""
+                                            errorMessage  = "Failed to process. Try again."
+                                        }
                                 },
                                 enabled  = canAfford,
                                 colors   = ButtonDefaults.buttonColors(

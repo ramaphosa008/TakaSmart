@@ -25,7 +25,11 @@ data class PayoutRecord(
 class CollectorViewModel : ViewModel() {
 
     private val db  = FirebaseFirestore.getInstance()
-    private val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    private val authUid =
+        FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    private var collectorEntityId = ""
+
 
     // Available jobs — status is 'requested' and no collector assigned yet
     private val _availableJobs = MutableStateFlow<List<JobSummary>>(emptyList())
@@ -52,9 +56,26 @@ class CollectorViewModel : ViewModel() {
     val payouts: StateFlow<List<PayoutRecord>> = _payouts
 
     init {
-        loadAvailableJobs()
-        loadActiveJob()
-        loadEarnings()
+        fetchCollectorEntityId()
+    }
+
+    private fun fetchCollectorEntityId() {
+
+        db.collection("users")
+            .document(authUid)
+            .get()
+            .addOnSuccessListener { doc ->
+
+                collectorEntityId =
+                    doc.getString("entity_id") ?: ""
+
+                if (collectorEntityId.isNotEmpty()) {
+
+                    loadAvailableJobs()
+                    loadActiveJob()
+                    loadEarnings()
+                }
+            }
     }
 
     private fun loadAvailableJobs() {
@@ -76,7 +97,7 @@ class CollectorViewModel : ViewModel() {
 
     private fun loadActiveJob() {
         db.collection("pickups")
-            .whereEqualTo("collector_id", uid)
+            .whereEqualTo("collector_id", collectorEntityId)
             .whereIn("status", listOf("confirmed", "en_route", "at_household", "at_facility"))
             .limit(1)
             .addSnapshotListener { snaps, _ ->
@@ -96,7 +117,7 @@ class CollectorViewModel : ViewModel() {
 
     private fun loadEarnings() {
         db.collection("pickups")
-            .whereEqualTo("collector_id", uid)
+            .whereEqualTo("collector_id", collectorEntityId)
             .whereEqualTo("status", "completed")
             .addSnapshotListener { snaps, _ ->
                 val docs = snaps?.documents ?: emptyList()
@@ -121,7 +142,7 @@ class CollectorViewModel : ViewModel() {
             .update(
                 mapOf(
                     "status"       to "confirmed",
-                    "collector_id" to uid
+                    "collector_id" to collectorEntityId
                 )
             )
             .addOnSuccessListener { onDone() }

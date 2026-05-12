@@ -3,7 +3,7 @@ package com.ramaphosa.takasmart.navigation
 // Onboarding
 const val ROUT_SPLASH       = "splash"
 
-
+const val ROUT_ACCOUNT = "account"
 
 const val ROUT_ROLE_SELECT  = "role_select"
 // Change phone entry route to accept a role parameter

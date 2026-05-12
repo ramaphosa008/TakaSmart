@@ -17,10 +17,9 @@ import com.ramaphosa.takasmart.navigation.ROUT_VERIFY_DELIVERY
 import com.ramaphosa.takasmart.ui.theme.*
 import com.ramaphosa.takasmart.data.FacilityViewModel
 import com.ramaphosa.takasmart.data.IncomingLoad
+import com.ramaphosa.takasmart.navigation.ROUT_ACCOUNT
 import com.ramaphosa.takasmart.ui.screens.shared.SectionLabel
 import com.ramaphosa.takasmart.ui.screens.shared.StatCard
-
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,16 +37,45 @@ fun FacilityHomeScreen(navController: NavController) {
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text  = "EcoAct Recyclers",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text  = "Incoming loads today",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Surface(
+                            onClick = {
+                                navController.navigate(ROUT_ACCOUNT)
+                            },
+                            shape = CircleShape,
+                            color = PurpleSurface,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Text(
+                                    text = "F",
+                                    color = Purple,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.width(10.dp))
+
+                        Column {
+                            Text(
+                                text  = "EcoAct Recyclers",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Text(
+                                text  = "Incoming loads today",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -209,7 +237,8 @@ fun FacilityHomeScreenPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FacilityHomePreviewContent() {
+fun FacilityHomePreviewContent(
+) {
     val dummyLoads = listOf(
         IncomingLoad("1", "col1", "14 Gitanga Rd", "Sat 26 Apr · 9–11am",  3, "at_facility", 1.8, "hh1"),
         IncomingLoad("2", "col2", "Ring Rd West",  "Sat 26 Apr · 11am–1pm",2, "completed",   3.2, "hh2")

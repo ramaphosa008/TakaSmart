@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ramaphosa.takasmart.ui.screens.account.AccountScreen
 import com.ramaphosa.takasmart.ui.screens.collector.ActivePickupScreen
 import com.ramaphosa.takasmart.ui.screens.collector.CollectorHomeScreen
 import com.ramaphosa.takasmart.ui.screens.collector.EarningsScreen
@@ -143,6 +144,12 @@ fun AppNavHost(
             val jobId = backStackEntry.arguments?.getString("jobId")!!
             CertificateScreen(navController, jobId)
         }
+
+        //ACCOUNT SCREEN
+        composable(ROUT_ACCOUNT) {
+            AccountScreen(navController)
+        }
+
 
     }
 }

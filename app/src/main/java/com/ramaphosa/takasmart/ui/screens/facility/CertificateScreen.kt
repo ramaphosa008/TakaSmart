@@ -8,8 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,6 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.ramaphosa.takasmart.navigation.ROUT_FACILITY_HOME
 import com.ramaphosa.takasmart.ui.theme.*
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CertificateScreen(navController: NavController, jobId: String) {
@@ -26,7 +29,7 @@ fun CertificateScreen(navController: NavController, jobId: String) {
     val db = FirebaseFirestore.getInstance()
 
     var verifiedKg    by remember { mutableDoubleStateOf(0.0) }
-    var householdId   by remember { mutableStateOf("") }
+    var householdId by rememberSaveable { mutableStateOf("") }
     var collectorId   by remember { mutableStateOf("") }
     var scheduledAt   by remember { mutableStateOf("") }
     var isSending     by remember { mutableStateOf(false) }
@@ -168,17 +171,53 @@ fun CertificateScreen(navController: NavController, jobId: String) {
             // ── Success message ────────────────────────────────
             if (sentSuccess) {
                 Surface(
-                    shape    = RoundedCornerShape(8.dp),
+                    shape    = RoundedCornerShape(10.dp),
                     color    = GreenSurface,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    border   = BorderStroke(0.5.dp, GreenBorder)
                 ) {
-                    Text(
-                        text     = "Certificate sent to household. Points credited automatically.",
-                        modifier = Modifier.padding(10.dp),
-                        style    = MaterialTheme.typography.bodySmall,
-                        color    = GreenDark
-                    )
+                    Column(Modifier.padding(12.dp)) {
+                        Text(
+                            text       = "✓  Certificate issued successfully",
+                            style      = MaterialTheme.typography.titleSmall,
+                            color      = GreenDark,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text  = "Points credited to household",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = GreenDark
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        // Mocked M-Pesa confirmation
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = White,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(10.dp)) {
+                                Text(
+                                    text  = "M-Pesa payment initiated",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = GrayMid
+                                )
+                                Text(
+                                    text  = "KES %.0f → Collector · Ref: TKS${jobId.take(6).uppercase()}".format(collectorPayout),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = GrayDark
+                                )
+                                Text(
+                                    text  = "Status: Processing (2–5 min)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Amber
+                                )
+                            }
+                        }
+                    }
                 }
+                Spacer(Modifier.height(12.dp))
+            }
                 Spacer(Modifier.height(12.dp))
             }
 
@@ -188,46 +227,73 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    enabled  = verifiedKg > 0 && !isSending,
+                    enabled =
+                        verifiedKg > 0 &&
+                                householdId.isNotBlank() &&
+                                collectorId.isNotBlank() &&
+                                !isSending,
                     colors   = ButtonDefaults.buttonColors(
                         containerColor = Teal,
                         contentColor   = White
                     ),
-                    onClick  = {
+                    onClick = {
                         isSending = true
 
-                        // 1. Write certificate document
-                        db.collection("certificates").add(
-                            mapOf(
-                                "pickup_id"    to jobId,
-                                "household_id" to householdId,
-                                "collector_id" to collectorId,
-                                "kg_processed" to verifiedKg,
-                                "issued_at"    to FieldValue.serverTimestamp()
-                            )
+                        // ── Step 1: Write certificate document ────────────────
+                        val certificateData = mapOf(
+                            "pickup_id"    to jobId,
+                            "household_id" to householdId,
+                            "collector_id" to collectorId,
+                            "kg_processed" to verifiedKg,
+                            "issued_at"    to FieldValue.serverTimestamp()
                         )
 
-                        // 2. Credit points to household
-                        db.collection("users").document(householdId)
-                            .update(
-                                mapOf(
-                                    "points_balance" to
-                                           FieldValue
-                                                .increment(householdPoints.toLong()),
-                                    "recycled_kg"    to
-                                            FieldValue
-                                                .increment(verifiedKg),
-                                    "pickups_done"   to
-                                            FieldValue
-                                                .increment(1L)
-                                )
-                            )
-                            .addOnSuccessListener {
-                                isSending   = false
-                                sentSuccess = true
+                        db.collection("certificates")
+                            .add(certificateData)
+                            .addOnSuccessListener { certRef ->
+
+                                // ── Step 2: Credit household points ───────────
+                                db.collection("users")
+                                    .document(householdId)
+                                    .update(
+                                        mapOf(
+                                            "points_balance" to FieldValue.increment(householdPoints.toLong()),
+                                            "recycled_kg"    to FieldValue.increment(verifiedKg),
+                                            "pickups_done"   to FieldValue.increment(1L)
+                                        )
+                                    )
+                                    .addOnSuccessListener {
+
+                                        // ── Step 3: Write reward record ────────
+                                        db.collection("rewards").add(
+                                            mapOf(
+                                                "user_id"      to householdId,
+                                                "points_earned" to householdPoints,
+                                                "reason"       to "Pickup #${jobId.take(8)} — %.2f kg verified".format(verifiedKg),
+                                                "pickup_id"    to jobId,
+                                                "cert_id"      to certRef.id,
+                                                "created_at"   to FieldValue.serverTimestamp()
+                                            )
+                                        )
+                                            .addOnSuccessListener {
+                                                isSending   = false
+                                                sentSuccess = true
+                                            }
+                                            .addOnFailureListener {
+                                                // Reward record failed but points were already credited
+                                                // Still mark as success — non-critical failure
+                                                isSending   = false
+                                                sentSuccess = true
+                                            }
+                                    }
+                                    .addOnFailureListener { e ->
+                                        isSending = false
+                                        // Show error — points not credited
+                                    }
                             }
-                            .addOnFailureListener {
+                            .addOnFailureListener { e ->
                                 isSending = false
+                                // Show error — certificate not created
                             }
                     }
                 ) {
@@ -270,7 +336,7 @@ fun CertificateScreen(navController: NavController, jobId: String) {
             Spacer(Modifier.height(24.dp))
         }
     }
-}
+
 
 // ── Summary row helper ─────────────────────────────────────────────────────
 @Composable

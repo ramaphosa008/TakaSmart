@@ -35,6 +35,13 @@ class FacilityViewModel : ViewModel() {
         db.collection("users").document(uid).get()
             .addOnSuccessListener { userDoc ->
                 val entityId = userDoc.getString("entity_id") ?: uid // Fallback to uid if not found
+
+
+                if (entityId.isEmpty()) {
+                    // entity_id not set — nothing to load
+                    return@addOnSuccessListener
+                }
+
                 loadIncomingLoads(entityId)
             }
     }

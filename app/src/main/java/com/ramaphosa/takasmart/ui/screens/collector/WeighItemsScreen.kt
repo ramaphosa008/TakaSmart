@@ -35,6 +35,8 @@ fun WeighItemsScreen(navController: NavController, jobId: String) {
 
     var selectedFacilityId by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
+    var selectedFacilityName by remember { mutableStateOf("Select a facility") }
+    var facilityExpanded     by remember { mutableStateOf(false) }
 
     // Load item IDs and Facilities
     LaunchedEffect(jobId) {
@@ -189,41 +191,44 @@ fun WeighItemsScreen(navController: NavController, jobId: String) {
             Spacer(Modifier.height(18.dp))
 
             // ── Facility Selection ─────────────────────────────
+            // Facility selector dropdown
             Text(
-                text  = "SELECT DESTINATION FACILITY",
+                text  = "Deliver to facility",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
 
-            
             ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
+                expanded         = facilityExpanded,
+                onExpandedChange = { facilityExpanded = !facilityExpanded }
             ) {
                 OutlinedTextField(
-                    value = facilities.find { it.first == selectedFacilityId }?.second ?: "Select Facility",
+                    value         = selectedFacilityName,
                     onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Teal,
+                    readOnly      = true,
+                    trailingIcon  = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = facilityExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    colors   = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor   = Teal,
                         unfocusedBorderColor = BorderColor
                     )
                 )
                 ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    expanded         = facilityExpanded,
+                    onDismissRequest = { facilityExpanded = false }
                 ) {
                     facilities.forEach { (id, name) ->
                         DropdownMenuItem(
-                            text = { Text(name) },
+                            text    = { Text(name) },
                             onClick = {
-                                selectedFacilityId = id
-                                expanded = false
+                                selectedFacilityId   = id
+                                selectedFacilityName = name
+                                facilityExpanded     = false
                             }
                         )
                     }

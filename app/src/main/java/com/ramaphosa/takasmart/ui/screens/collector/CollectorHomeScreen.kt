@@ -15,10 +15,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ramaphosa.takasmart.data.CollectorViewModel
 import com.ramaphosa.takasmart.data.JobSummary
+import com.ramaphosa.takasmart.navigation.ROUT_ACCOUNT
 import com.ramaphosa.takasmart.navigation.ROUT_ACTIVE_PICKUP
 import com.ramaphosa.takasmart.navigation.ROUT_EARNINGS
 import com.ramaphosa.takasmart.ui.theme.*
@@ -38,10 +40,16 @@ fun CollectorHomeScreen(navController: NavController) {
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
                         Surface(
+                            onClick = {
+                                navController.navigate(ROUT_ACCOUNT)
+                            },
                             shape = CircleShape,
-                            color = AmberSurface,
+                            color = TealSurface,
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(
@@ -50,22 +58,21 @@ fun CollectorHomeScreen(navController: NavController) {
                             ) {
                                 Text(
                                     text = "C",
-                                    color = Amber,
+                                    color = Teal,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             }
                         }
-                        Spacer(Modifier.width(10.dp))
+
+                        Spacer(Modifier.width(12.dp)) //
+
                         Column {
                             Text(
-                                text  = "Taka Smart",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = GrayDark
-                            )
-                            Text(
-                                text  = "${availableJobs.size} jobs nearby",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = GrayMid
+                                text = "TakaSmart",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = (-0.5).sp
+                                )
                             )
                         }
                     }

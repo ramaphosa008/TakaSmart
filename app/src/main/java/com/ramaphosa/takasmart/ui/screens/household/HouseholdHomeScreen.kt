@@ -30,6 +30,7 @@ import com.ramaphosa.takasmart.navigation.ROUT_REWARDS
 import com.ramaphosa.takasmart.ui.theme.*
 import com.ramaphosa.takasmart.data.HouseholdViewModel
 import com.ramaphosa.takasmart.data.PickupSummary
+import com.ramaphosa.takasmart.navigation.ROUT_ACCOUNT
 import com.ramaphosa.takasmart.navigation.ROUT_TRACK_PICKUP
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,18 +49,40 @@ fun HouseholdHomeScreen(navController: NavController) {
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "TakaSmart",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = (-0.5).sp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Surface(
+                            onClick = {
+                                navController.navigate(ROUT_ACCOUNT)
+                            },
+                            shape = CircleShape,
+                            color = TealSurface,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Text(
+                                    text = "C",
+                                    color = Teal,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.width(12.dp)) //
+
+                        Column {
+                            Text(
+                                text = "TakaSmart",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = (-0.5).sp
+                                )
                             )
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-
-                            Spacer(Modifier.width(4.dp))
-
                         }
                     }
                 },
