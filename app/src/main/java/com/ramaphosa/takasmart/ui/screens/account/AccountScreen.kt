@@ -32,7 +32,7 @@ fun AccountScreen(
     val roleColor = when (account.role.lowercase()) {
         "household" -> colors.primary
         "collector" -> colors.tertiary
-        "facility" -> colors.tertiaryFixed
+        "facility" -> colors.primary
         else -> colors.primary
     }
 

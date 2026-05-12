@@ -21,7 +21,7 @@ import com.ramaphosa.takasmart.data.HouseholdViewModel
 import com.ramaphosa.takasmart.ui.screens.shared.StatCard
 import com.ramaphosa.takasmart.ui.theme.*
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.auth.FirebaseAuth
+
 
 data class RewardOption(
     val label    : String,
@@ -39,6 +39,7 @@ fun RewardsScreen(navController: NavController) {
     val vm         : HouseholdViewModel = viewModel()
     val points     by vm.points.collectAsState()
     val recycledKg by vm.recycledKg.collectAsState()
+    val redemptions by vm.redemptions.collectAsState()
 
     var redeemingType  by remember { mutableStateOf("") }
     var successMessage by remember { mutableStateOf("") }
@@ -350,6 +351,67 @@ fun RewardsScreen(navController: NavController) {
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            // ── Redemption history ─────────────────────────────
+            if (redemptions.isNotEmpty()) {
+
+                item {
+                    Text(
+                        text       = "REDEMPTION HISTORY",
+                        style      = MaterialTheme.typography.labelSmall,
+                        color      = GrayMid,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                items(redemptions) { redemption ->
+
+                    Surface(
+                        shape    = RoundedCornerShape(12.dp),
+                        color    = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier.fillMaxWidth(),
+                        border   = BorderStroke(0.5.dp, BorderColor)
+                    ) {
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Column {
+
+                                Text(
+                                    text = when(redemption.rewardType) {
+                                        "safaricom" -> "Safaricom Airtime"
+                                        "airtel"    -> "Airtel Airtime"
+                                        "tree"      -> "Tree Planting"
+                                        else        -> redemption.rewardType
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+
+                                Spacer(Modifier.height(4.dp))
+
+                                Text(
+                                    text = "${redemption.status.uppercase()} • ${redemption.createdAt}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = GrayMid
+                                )
+                            }
+
+                            Text(
+                                text = "-${redemption.pointsSpent} pts",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = ErrorRed
+                            )
                         }
                     }
                 }

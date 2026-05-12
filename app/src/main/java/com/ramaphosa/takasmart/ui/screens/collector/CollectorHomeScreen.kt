@@ -49,7 +49,7 @@ fun CollectorHomeScreen(navController: NavController) {
                                 navController.navigate(ROUT_ACCOUNT)
                             },
                             shape = CircleShape,
-                            color = TealSurface,
+                            color = AmberSurface,
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(
@@ -58,7 +58,7 @@ fun CollectorHomeScreen(navController: NavController) {
                             ) {
                                 Text(
                                     text = "C",
-                                    color = Teal,
+                                    color = Amber,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             }

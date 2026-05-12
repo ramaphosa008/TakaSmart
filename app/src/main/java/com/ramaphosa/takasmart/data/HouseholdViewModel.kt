@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -24,6 +25,25 @@ data class PickupSummary(
     val scheduledAt : String = "",
     val itemCount   : Int    = 0
 )
+
+data class RedemptionItem(
+    val id           : String = "",
+    val rewardType   : String = "",
+    val pointsSpent  : Int    = 0,
+    val amountKes    : Int    = 0,
+    val status       : String = "",
+    val createdAt    : String = ""
+)
+
+data class RewardHistoryItem(
+    val id            : String = "",
+    val pointsEarned  : Int    = 0,
+    val reason        : String = "",
+    val pickupId      : String = "",
+    val certId        : String = "",
+    val createdAt     : String = ""
+)
+
 
 class HouseholdViewModel : ViewModel() {
 
@@ -50,10 +70,76 @@ class HouseholdViewModel : ViewModel() {
     private val _pickupsDone = MutableStateFlow(0)
     val pickupsDone: StateFlow<Int> = _pickupsDone
 
+
+    private val _rewardHistory =
+        MutableStateFlow<List<RewardHistoryItem>>(emptyList())
+
+    val rewardHistory: StateFlow<List<RewardHistoryItem>> =
+        _rewardHistory
+
+
+    // Redemption history
+    private val _redemptions =
+        MutableStateFlow<List<RedemptionItem>>(emptyList())
+
+    val redemptions: StateFlow<List<RedemptionItem>> =
+        _redemptions
+
     init {
         loadUserData()
         loadItems()
         loadUpcomingPickup()
+        loadRewardHistory()
+        loadRedemptions()
+    }
+
+
+
+    private fun loadRedemptions() {
+
+        db.collection("redemptions")
+            .whereEqualTo("user_id", uid)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .addSnapshotListener { snaps, _ ->
+
+                _redemptions.value =
+                    snaps?.documents?.map { doc ->
+
+                        RedemptionItem(
+                            id          = doc.id,
+                            rewardType  = doc.getString("reward_type") ?: "",
+                            pointsSpent = doc.getLong("points_spent")?.toInt() ?: 0,
+                            amountKes   = doc.getLong("amount_kes")?.toInt() ?: 0,
+                            status      = doc.getString("status") ?: "",
+                            createdAt   = doc.get("created_at")?.toString() ?: ""
+                        )
+
+                    } ?: emptyList()
+            }
+    }
+
+
+    private fun loadRewardHistory() {
+
+        db.collection("rewards")
+            .whereEqualTo("user_id", uid)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .addSnapshotListener { snaps, _ ->
+
+                _rewardHistory.value =
+                    snaps?.documents?.map { doc ->
+
+                        RewardHistoryItem(
+                            id           = doc.id,
+                            pointsEarned = doc.getLong("points_earned")?.toInt() ?: 0,
+                            reason       = doc.getString("reason") ?: "",
+                            pickupId     = doc.getString("pickup_id") ?: "",
+                            certId       = doc.getString("cert_id") ?: "",
+                            createdAt    = doc.get("created_at")?.toString() ?: ""
+                        )
+
+                    } ?: emptyList()
+            }
     }
 
     private fun loadUserData() {

@@ -101,45 +101,45 @@ fun CertificateScreen(navController: NavController, jobId: String) {
 
             // ── Certificate card ───────────────────────────────
             OutlinedCard(
-                shape    = RoundedCornerShape(12.dp),
-                border   = BorderStroke(0.5.dp, BorderColor),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(0.5.dp, BorderColor),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier            = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text  = "RECYCLING CERTIFICATE",
+                        text = "RECYCLING CERTIFICATE",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text      = "%.2f kg e-waste".format(verifiedKg),
-                        style     = MaterialTheme.typography.titleLarge,
+                        text = "%.2f kg e-waste".format(verifiedKg),
+                        style = MaterialTheme.typography.titleLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text      = "Certified by EcoAct Recyclers",
-                        style     = MaterialTheme.typography.bodySmall,
-                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Certified by EcoAct Recyclers",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        text      = scheduledAt,
-                        style     = MaterialTheme.typography.bodySmall,
-                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = scheduledAt,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text      = "Job #${jobId.take(8).uppercase()}",
-                        style     = MaterialTheme.typography.bodySmall,
-                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Job #${jobId.take(8).uppercase()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -149,12 +149,16 @@ fun CertificateScreen(navController: NavController, jobId: String) {
 
             // ── Payment summary ────────────────────────────────
             Surface(
-                shape    = RoundedCornerShape(10.dp),
-                color    = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(12.dp)) {
-                    SummaryRow("Collector paid", "KES %.0f via M-Pesa".format(collectorPayout), Green)
+                    SummaryRow(
+                        "Collector paid",
+                        "KES %.0f via M-Pesa".format(collectorPayout),
+                        Green
+                    )
                     Spacer(Modifier.height(8.dp))
                     SummaryRow("Household rewarded", "+$householdPoints points", Teal)
                     Spacer(Modifier.height(8.dp))
@@ -171,21 +175,21 @@ fun CertificateScreen(navController: NavController, jobId: String) {
             // ── Success message ────────────────────────────────
             if (sentSuccess) {
                 Surface(
-                    shape    = RoundedCornerShape(10.dp),
-                    color    = GreenSurface,
+                    shape = RoundedCornerShape(10.dp),
+                    color = GreenSurface,
                     modifier = Modifier.fillMaxWidth(),
-                    border   = BorderStroke(0.5.dp, GreenBorder)
+                    border = BorderStroke(0.5.dp, GreenBorder)
                 ) {
                     Column(Modifier.padding(12.dp)) {
                         Text(
-                            text       = "✓  Certificate issued successfully",
-                            style      = MaterialTheme.typography.titleSmall,
-                            color      = GreenDark,
+                            text = "✓  Certificate issued successfully",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = GreenDark,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            text  = "Points credited to household",
+                            text = "Points credited to household",
                             style = MaterialTheme.typography.bodySmall,
                             color = GreenDark
                         )
@@ -198,17 +202,19 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                         ) {
                             Column(Modifier.padding(10.dp)) {
                                 Text(
-                                    text  = "M-Pesa payment initiated",
+                                    text = "M-Pesa payment initiated",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = GrayMid
                                 )
                                 Text(
-                                    text  = "KES %.0f → Collector · Ref: TKS${jobId.take(6).uppercase()}".format(collectorPayout),
+                                    text = "KES %.0f → Collector · Ref: TKS${
+                                        jobId.take(6).uppercase()
+                                    }".format(collectorPayout),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = GrayDark
                                 )
                                 Text(
-                                    text  = "Status: Processing (2–5 min)",
+                                    text = "Status: Processing (2–5 min)",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Amber
                                 )
@@ -218,8 +224,8 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                 }
                 Spacer(Modifier.height(12.dp))
             }
-                Spacer(Modifier.height(12.dp))
-            }
+            Spacer(Modifier.height(12.dp))
+
 
             // ── Send certificate button ────────────────────────
             if (!sentSuccess) {
@@ -232,20 +238,20 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                                 householdId.isNotBlank() &&
                                 collectorId.isNotBlank() &&
                                 !isSending,
-                    colors   = ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = Teal,
-                        contentColor   = White
+                        contentColor = White
                     ),
                     onClick = {
                         isSending = true
 
                         // ── Step 1: Write certificate document ────────────────
                         val certificateData = mapOf(
-                            "pickup_id"    to jobId,
+                            "pickup_id" to jobId,
                             "household_id" to householdId,
                             "collector_id" to collectorId,
                             "kg_processed" to verifiedKg,
-                            "issued_at"    to FieldValue.serverTimestamp()
+                            "issued_at" to FieldValue.serverTimestamp()
                         )
 
                         db.collection("certificates")
@@ -258,8 +264,8 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                                     .update(
                                         mapOf(
                                             "points_balance" to FieldValue.increment(householdPoints.toLong()),
-                                            "recycled_kg"    to FieldValue.increment(verifiedKg),
-                                            "pickups_done"   to FieldValue.increment(1L)
+                                            "recycled_kg" to FieldValue.increment(verifiedKg),
+                                            "pickups_done" to FieldValue.increment(1L)
                                         )
                                     )
                                     .addOnSuccessListener {
@@ -267,31 +273,33 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                                         // ── Step 3: Write reward record ────────
                                         db.collection("rewards").add(
                                             mapOf(
-                                                "user_id"      to householdId,
+                                                "user_id" to householdId,
                                                 "points_earned" to householdPoints,
-                                                "reason"       to "Pickup #${jobId.take(8)} — %.2f kg verified".format(verifiedKg),
-                                                "pickup_id"    to jobId,
-                                                "cert_id"      to certRef.id,
-                                                "created_at"   to FieldValue.serverTimestamp()
+                                                "reason" to "Pickup #${jobId.take(8)} — %.2f kg verified".format(
+                                                    verifiedKg
+                                                ),
+                                                "pickup_id" to jobId,
+                                                "cert_id" to certRef.id,
+                                                "created_at" to FieldValue.serverTimestamp()
                                             )
                                         )
                                             .addOnSuccessListener {
-                                                isSending   = false
+                                                isSending = false
                                                 sentSuccess = true
                                             }
                                             .addOnFailureListener {
                                                 // Reward record failed but points were already credited
                                                 // Still mark as success — non-critical failure
-                                                isSending   = false
+                                                isSending = false
                                                 sentSuccess = true
                                             }
                                     }
-                                    .addOnFailureListener { e ->
+                                    .addOnFailureListener { _ ->
                                         isSending = false
                                         // Show error — points not credited
                                     }
                             }
-                            .addOnFailureListener { e ->
+                            .addOnFailureListener { _ ->
                                 isSending = false
                                 // Show error — certificate not created
                             }
@@ -299,8 +307,8 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                 ) {
                     if (isSending) {
                         CircularProgressIndicator(
-                            modifier    = Modifier.size(20.dp),
-                            color       = White,
+                            modifier = Modifier.size(20.dp),
+                            color = White,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -312,6 +320,9 @@ fun CertificateScreen(navController: NavController, jobId: String) {
                 }
                 Spacer(Modifier.height(8.dp))
             }
+        }
+
+
 
             // ── Back to facility home ──────────────────────────
             OutlinedButton(
@@ -336,6 +347,7 @@ fun CertificateScreen(navController: NavController, jobId: String) {
             Spacer(Modifier.height(24.dp))
         }
     }
+
 
 
 // ── Summary row helper ─────────────────────────────────────────────────────
