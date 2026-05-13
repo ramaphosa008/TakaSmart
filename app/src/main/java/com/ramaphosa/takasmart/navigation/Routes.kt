@@ -31,3 +31,9 @@ const val ROUT_WEIGH_ITEMS      = "weigh_items/{jobId}"
 const val ROUT_FACILITY_HOME    = "facility_home"
 const val ROUT_VERIFY_DELIVERY  = "verify_delivery/{jobId}"
 const val ROUT_CERTIFICATE      = "certificate/{jobId}"
+
+//ADMIN
+const val ROUT_ADMIN_LOGIN = "admin_login"
+const val ROUT_ADMIN_HOME = "admin_home"
+
+const val ROUT_ADMIN_DISPUTE = "admin_dispute/{pickupId}"

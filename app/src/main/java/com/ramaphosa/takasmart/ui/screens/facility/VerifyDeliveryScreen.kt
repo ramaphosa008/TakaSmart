@@ -265,6 +265,22 @@ fun VerifyDeliveryScreen(navController: NavController, jobId: String) {
                                     ROUT_CERTIFICATE.replace("{jobId}", jobId)
                                 )
                             } else {
+
+                                val disputeData = mapOf(
+                                    "pickupId" to jobId,
+                                    "collectorWeight" to collectorLoggedKg,
+                                    "facilityWeight" to facilityKg,
+                                    "differencePercent" to (difference * 100),
+                                    "status" to "pending_admin_review",
+                                    "adminDecision" to "",
+                                    "resolvedWeight" to 0.0,
+                                    "createdAt" to com.google.firebase.Timestamp.now()
+                                )
+
+                                db.collection("disputes")
+                                    .document(jobId)
+                                    .set(disputeData)
+
                                 // Show dispute raised confirmation
                                 disputeRaised = true  // add this state variable
                             }

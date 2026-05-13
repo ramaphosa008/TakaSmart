@@ -11,6 +11,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,108 +23,153 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
-import com.ramaphosa.takasmart.navigation.ROUT_PHONE_ENTRY
+import com.ramaphosa.takasmart.navigation.ROUT_ADMIN_LOGIN
 import com.ramaphosa.takasmart.ui.screens.onboarding.phoneentry.StepDot
 import com.ramaphosa.takasmart.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoleSelectScreen(navController: NavController) {
 
     var selectedRole by remember { mutableStateOf("household") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GraySurface)
-            .padding(24.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Step indicator
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                StepDot(active = true)
-                StepDot(active = false)
-                StepDot(active = false)
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            Text(
-                text  = "Welcome to Taka Smart",
-                style = MaterialTheme.typography.titleLarge,
-                color = GrayDark
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text  = "Who are you?",
-                style = MaterialTheme.typography.bodyMedium,
-                color = GrayMid
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            RoleCard(
-                letter       = "H",
-                title        = "Household",
-                subtitle     = "Log e-waste, schedule pickups, earn rewards",
-                selected     = selectedRole == "household",
-                iconBg       = TealSurface,
-                iconColor    = Teal,
-                selectedColor= Teal
-            ) { selectedRole = "household" }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            RoleCard(
-                letter       = "C",
-                title        = "Collector / rider",
-                subtitle     = "Pick up e-waste, earn per kilogram",
-                selected     = selectedRole == "collector",
-                iconBg       = AmberSurface,
-                iconColor    = Amber,
-                selectedColor= Amber
-            ) { selectedRole = "collector" }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            RoleCard(
-                letter       = "F",
-                title        = "Recycling facility",
-                subtitle     = "Receive loads, issue certificates",
-                selected     = selectedRole == "facility",
-                iconBg       = PurpleSurface,
-                iconColor    = Purple,
-                selectedColor= Purple
-            ) { selectedRole = "facility" }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick  = {
-                    // Navigate to the phone entry screen with the selected role
-                    navController.navigate("phone_entry/$selectedRole")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape    = RoundedCornerShape(10.dp),
-                colors   = ButtonDefaults.buttonColors(
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Teal,
-                    contentColor   = White
-                )
-            ) {
-                Text(
-                    text  = "Continue as $selectedRole",
-                    style = MaterialTheme.typography.titleSmall
-                )
-            }
+                    titleContentColor = White,
+                    navigationIconContentColor = White,
+                    actionIconContentColor = White
+                ),
 
-            Spacer(modifier = Modifier.height(24.dp))
+                title = {
+                    Column {
+                        Text(
+                            text = "TakaSmart App",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                },
+
+                actions = {
+                    IconButton(
+                        onClick = {
+                            navController.navigate(ROUT_ADMIN_LOGIN)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Admin"
+                        )
+                    }
+                }
+            )
+        }
+
+    ) { paddingValues ->
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GraySurface)
+                .padding(paddingValues)
+                .padding(24.dp)
+        ) {
+
+            Column(modifier = Modifier.fillMaxSize()) {
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Step indicator
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    StepDot(active = true)
+                    StepDot(active = false)
+                    StepDot(active = false)
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                Text(
+                    text  = "Welcome to Taka Smart",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = GrayDark
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text  = "Who are you?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = GrayMid
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                RoleCard(
+                    letter       = "H",
+                    title        = "Household",
+                    subtitle     = "Log e-waste, schedule pickups, earn rewards",
+                    selected     = selectedRole == "household",
+                    iconBg       = TealSurface,
+                    iconColor    = Teal,
+                    selectedColor= Teal
+                ) { selectedRole = "household" }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                RoleCard(
+                    letter       = "C",
+                    title        = "Collector / rider",
+                    subtitle     = "Pick up e-waste, earn per kilogram",
+                    selected     = selectedRole == "collector",
+                    iconBg       = AmberSurface,
+                    iconColor    = Amber,
+                    selectedColor= Amber
+                ) { selectedRole = "collector" }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                RoleCard(
+                    letter       = "F",
+                    title        = "Recycling facility",
+                    subtitle     = "Receive loads, issue certificates",
+                    selected     = selectedRole == "facility",
+                    iconBg       = PurpleSurface,
+                    iconColor    = Purple,
+                    selectedColor= Purple
+                ) { selectedRole = "facility" }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick  = {
+                        // Navigate to the phone entry screen with the selected role
+                        navController.navigate("phone_entry/$selectedRole")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape    = RoundedCornerShape(10.dp),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = Teal,
+                        contentColor   = White
+                    )
+                ) {
+                    Text(
+                        text  = "Continue as $selectedRole",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
+
+
 
 
 @Composable

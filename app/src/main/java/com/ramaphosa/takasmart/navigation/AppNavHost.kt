@@ -10,6 +10,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ramaphosa.takasmart.ui.screens.account.AccountScreen
 import com.ramaphosa.takasmart.ui.screens.collector.ActivePickupScreen
+import com.ramaphosa.takasmart.ui.screens.admin.AdminLoginScreen
+import com.ramaphosa.takasmart.ui.screens.admin.AdminHomeScreen
+import com.ramaphosa.takasmart.ui.screens.admin.AdminDisputeDetailScreen
 import com.ramaphosa.takasmart.ui.screens.collector.CollectorHomeScreen
 import com.ramaphosa.takasmart.ui.screens.collector.EarningsScreen
 import com.ramaphosa.takasmart.ui.screens.collector.WeighItemsScreen
@@ -148,6 +151,23 @@ fun AppNavHost(
         //ACCOUNT SCREEN
         composable(ROUT_ACCOUNT) {
             AccountScreen(navController)
+        }
+
+// ── Admin ─────────────────────────────────────────────────
+        composable(ROUT_ADMIN_LOGIN) {
+            AdminLoginScreen(navController)
+        }
+
+        composable(ROUT_ADMIN_HOME) {
+            AdminHomeScreen(navController)
+        }
+
+        composable(
+            route     = ROUT_ADMIN_DISPUTE,
+            arguments = listOf(navArgument("pickupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val pickupId = backStackEntry.arguments?.getString("pickupId")!!
+            AdminDisputeDetailScreen(navController, pickupId)
         }
 
 
